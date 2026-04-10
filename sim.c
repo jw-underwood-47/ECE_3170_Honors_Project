@@ -33,7 +33,7 @@ uint8_t diff_bits(uint64_t x, uint64_t y){
 }
 
 void print_results(){
-    printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" errors passed\n\t%"PRIu64" errors detected\n\t%"PRIu64" errors fixed\n",
+    printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" errors passed\n\t%"PRIu64" errors detected but not fixed\n\t%"PRIu64" errors fixed\n",
            NUM_ITERATIONS, RIGHT, WRONG, DETECTED, FIXED);
 }
 
@@ -50,7 +50,7 @@ int main(int argc, char*argv[]){
             BIT_ERROR_RATE = atoi(argv[3]);
         }
     }
-    original = (rand() << 31) | (rand());
+    original = (random() << 31) | (random());
     error_test();
 }
 
@@ -92,7 +92,7 @@ void unsafe(){
     TOTAL_BITS = sizeof(uint64_t)*8;
     set_error_spots(&corrupted);
     uint8_t d = diff_bits(corrupted, original);
-    WRONG += d; RIGHT += 64-d;
+    WRONG += d; RIGHT += TOTAL_BITS-d;
 }
 void hammond_1(){
 
@@ -101,7 +101,14 @@ void hammond_2(){
 
 }
 void brute_force_1(){
-
+    uint64_t corrupted[3] = {original, original, original};
+    TOTAL_BITS = 3*sizeof(uint64_t)*8;
+    set_error_spots((uint64_t*)&corrupted);
+    uint64_t reconstructed = (corrupted[0]&corrupted[1])|(corrupted[0]&corrupted[2])|(corrupted[1]&corrupted[2]);
+    uint8_t d = diff_bits(reconstructed, original);
+    int was_wrong = diff_bits(corrupted[0], original) + diff_bits(corrupted[1], original) + diff_bits(corrupted[2], original);
+    // total bit errors -- but, technically 3x as many b/c 3x bits sent
+    WRONG += d; RIGHT += TOTAL_BITS-d-was_wrong; FIXED += was_wrong;
 }
 void brute_force_2(){
 
@@ -109,6 +116,6 @@ void brute_force_2(){
 
 void set_error_spots(uint64_t *target){
     for (int i = 0; i < TOTAL_BITS; i++){
-        if((random()%BIT_ERROR_RATE) == 0) *target ^= (uint64_t)1<<i;
+        if((random()%BIT_ERROR_RATE) == 0) target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
     }
 }
