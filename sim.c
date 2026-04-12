@@ -78,11 +78,11 @@ void hamming_decode_74(uint64_t* input, uint64_t* output){
     for (int i = 0; i < 16; i++){
         uint8_t current_byte = (input[i/8]>>(8*(i%8)))&0x7F;
         /* byte to decode */
-        printf("Decoding byte: %x\n", current_byte);
+        //printf("Decoding byte: %x\n", current_byte);
         for (int index = 0; index < 16; index++){
             if (__builtin_popcount(current_byte^hamming_74_lookup[index]) <= 1){
                 *output |= (((uint64_t)index)<<(4*i));
-                printf("Got a byte: %x -> %"PRIx64"\n", (uint64_t)index, *output);
+                //printf("Got a byte: %x -> %"PRIx64"\n", (uint64_t)index, *output);
                 break;
                 /* we found the right index */
             }
@@ -157,6 +157,8 @@ void hamming_1(){
     printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
     uint64_t reconstructed = 0; hamming_decode_74((uint64_t*)&corrupted, &reconstructed);
     printf("reconstruction: %"PRIx64"\n", reconstructed);
+    uint8_t d = diff_bits(reconstructed, original);
+    WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
 void hamming_2(){
 
@@ -168,7 +170,7 @@ void brute_force_1(){
     uint64_t reconstructed = (corrupted[0]&corrupted[1])|(corrupted[0]&corrupted[2])|(corrupted[1]&corrupted[2]);
     uint8_t d = diff_bits(reconstructed, original);
     //int was_wrong = diff_bits(corrupted[0], original) + diff_bits(corrupted[1], original) + diff_bits(corrupted[2], original);
-    // total bit errors -- but, technically 3x as many b/c 3x bits sent
+    //total bit errors -- but, technically 3x as many b/c 3x bits sent
     WRONG += d; RIGHT += TOTAL_BITS-d; FIXED += CHANGED-d;
 }
 void brute_force_2(){
