@@ -44,8 +44,8 @@ uint8_t hamming_74_lookup[16] = {
 
 void set_error_spots(uint64_t* target);
 void unsafe();
-void hammond_1();
-void hammond_2();
+void hamming_1();
+void hamming_2();
 void brute_force_1();
 void brute_force_2();
 void error_test();
@@ -61,13 +61,32 @@ void print_results(){
            NUM_ITERATIONS, RIGHT, WRONG, CHANGED);
 }
 /*
- * hammond(7, 4) encoding of global uint64_t original;
+ * hamming(7, 4) encoding of global uint64_t original;
  * assumes given target of two uint64_ts
  */
-void hammond_encode_74(uint64_t *target){
+void hamming_encode_74(uint64_t *target){
     for (int i = 0; i < 16; i++){
         //printf("hamming code: %x\n", hamming_74_lookup[(original>>(4*i))&0xF]);
-        target[i/8] |= (hamming_74_lookup[(original>>(4*i))&0xF])<<(8*i);
+        target[i/8] |= (uint64_t)((hamming_74_lookup[(original>>(4*i))&0xF])&0x7F)<<(8*(i%8));
+    }
+}
+/* decode hamming(7, 4) assuming valid input and output
+ * of uint64_t array and pointer, respectively and preemtively
+ * set output to 0 */
+void hamming_decode_74(uint64_t* input, uint64_t* output){
+    *output = 0;
+    for (int i = 0; i < 16; i++){
+        uint8_t current_byte = (input[i/8]>>(8*(i%8)))&0x7F;
+        /* byte to decode */
+        printf("Decoding byte: %x\n", current_byte);
+        for (int index = 0; index < 16; index++){
+            if (__builtin_popcount(current_byte^hamming_74_lookup[index]) <= 1){
+                *output |= (((uint64_t)index)<<(4*i));
+                printf("Got a byte: %x -> %"PRIx64"\n", (uint64_t)index, *output);
+                break;
+                /* we found the right index */
+            }
+        }
     }
 }
 
@@ -104,7 +123,7 @@ void error_test(){
             break;
         case HAMMOND_1:
             for(int i = 0; i < NUM_ITERATIONS; i++){
-                hammond_1();
+                hamming_1();
             }
             break;
         case BRUTE_FORCE_2:
@@ -114,7 +133,7 @@ void error_test(){
             break;
         case HAMMOND_2:
             for(int i = 0; i < NUM_ITERATIONS; i++){
-                hammond_2();
+                hamming_2();
             }
             break;
     }
@@ -128,16 +147,18 @@ void unsafe(){
     uint8_t d = diff_bits(corrupted, original);
     WRONG += d; RIGHT += TOTAL_BITS-d; FIXED += CHANGED-d;
 }
-/* hammond(7, 4) encoding */
-void hammond_1(){
+/* hamming(7, 4) encoding */
+void hamming_1(){
     uint64_t corrupted[2] = {0, 0};
-    hammond_encode_74((uint64_t*)&corrupted);
-    TOTAL_BITS = 7*sizeof(uint64_t)*8/4; // (7,4) code
+    hamming_encode_74((uint64_t*)&corrupted);
+    TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
     set_error_spots((uint64_t*)&corrupted);
-    printf("original: %x\n", original);
-    printf("encoded after corruption: %x %x\n", corrupted[0], corrupted[1]);
+    printf("\n\noriginal: %"PRIx64"\n", original);
+    printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
+    uint64_t reconstructed = 0; hamming_decode_74((uint64_t*)&corrupted, &reconstructed);
+    printf("reconstruction: %"PRIx64"\n", reconstructed);
 }
-void hammond_2(){
+void hamming_2(){
 
 }
 void brute_force_1(){
@@ -166,8 +187,9 @@ void set_error_spots(uint64_t *target){
             }
             break;
         case HAMMOND_1:
-            for (int i = 0; i < TOTAL_BITS; i+=(1+(i%8==7))){
+            for (int i = 0; i < TOTAL_BITS; i++){
                 /* bits 7, 15, etc (from zero index) are not used */
+                if (i%8 == 7) continue;
                 if((random()%BIT_ERROR_RATE) == 0){
                     target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
                     CHANGED++;
