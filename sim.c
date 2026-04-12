@@ -185,10 +185,10 @@ void hamming_1(){
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
     set_error_spots((uint64_t*)&corrupted);
-    printf("\n\noriginal: %"PRIx64"\n", original);
-    printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
+    //printf("\n\noriginal: %"PRIx64"\n", original);
+    //printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
     uint64_t reconstructed = 0; hamming_decode_74((uint64_t*)&corrupted, &reconstructed);
-    printf("reconstruction: %"PRIx64"\n", reconstructed);
+    //printf("reconstruction: %"PRIx64"\n", reconstructed);
     uint8_t d = diff_bits(reconstructed, original);
     WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
@@ -197,10 +197,10 @@ void hamming_2(){
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
     do_burst_error((uint64_t*)&corrupted);
-    printf("\n\noriginal: %"PRIx64"\n", original);
-    printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
+    //printf("\n\noriginal: %"PRIx64"\n", original);
+    //printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
     uint64_t reconstructed = 0; hamming_decode_74((uint64_t*)&corrupted, &reconstructed);
-    printf("reconstruction: %"PRIx64"\n", reconstructed);
+    //printf("reconstruction: %"PRIx64"\n", reconstructed);
     uint8_t d = diff_bits(reconstructed, original);
     WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
@@ -209,10 +209,10 @@ void hamming_3(){
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
     do_clustered_error((uint64_t*)&corrupted);
-    printf("\n\noriginal: %"PRIx64"\n", original);
-    printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
+    //printf("\n\noriginal: %"PRIx64"\n", original);
+    //printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
     uint64_t reconstructed = 0; hamming_decode_74((uint64_t*)&corrupted, &reconstructed);
-    printf("reconstruction: %"PRIx64"\n", reconstructed);
+    //printf("reconstruction: %"PRIx64"\n", reconstructed);
     uint8_t d = diff_bits(reconstructed, original);
     WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
@@ -221,10 +221,10 @@ void hamming_4(){
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
     do_more_burst_errors((uint64_t*)&corrupted);
-    printf("\n\noriginal: %"PRIx64"\n", original);
-    printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
+    //printf("\n\noriginal: %"PRIx64"\n", original);
+    //printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
     uint64_t reconstructed = 0; hamming_decode_74((uint64_t*)&corrupted, &reconstructed);
-    printf("reconstruction: %"PRIx64"\n", reconstructed);
+    //printf("reconstruction: %"PRIx64"\n", reconstructed);
     uint8_t d = diff_bits(reconstructed, original);
     WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
@@ -359,7 +359,7 @@ void do_clustered_error(uint64_t *target){
 }
 /* makes bursts with frequency BIT_ERROR_RATE */
 void do_more_burst_errors(uint64_t *target){
-    int burst_size;
+    int burst_size = (random()%MAX_BURST_SIZE)+1;
     if(CODE_TO_USE % 2){
         for (int i = 0; i < TOTAL_BITS; i++){
             /* bits 7, 15, etc (from zero index) are not used */
