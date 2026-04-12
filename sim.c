@@ -16,7 +16,7 @@ int BIT_ERROR_RATE = 1000;
 uint64_t RIGHT = 0;
 uint64_t WRONG = 0;
 uint64_t FIXED = 0;
-uint64_t DETECTED = 0;
+uint64_t CHANGED = 0;
 int TOTAL_BITS;
 uint64_t original;
 
@@ -33,8 +33,8 @@ uint8_t diff_bits(uint64_t x, uint64_t y){
 }
 
 void print_results(){
-    printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" errors passed\n\t%"PRIu64" errors detected but not fixed\n\t%"PRIu64" errors fixed\n",
-           NUM_ITERATIONS, RIGHT, WRONG, DETECTED, FIXED);
+    printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" bits of original message corrupted\n\t%"PRIu64" bit errors fixed\n",
+           NUM_ITERATIONS, RIGHT, WRONG, FIXED);
 }
 
 int main(int argc, char*argv[]){
@@ -92,7 +92,7 @@ void unsafe(){
     TOTAL_BITS = sizeof(uint64_t)*8;
     set_error_spots(&corrupted);
     uint8_t d = diff_bits(corrupted, original);
-    WRONG += d; RIGHT += TOTAL_BITS-d;
+    WRONG += d; RIGHT += TOTAL_BITS-d; FIXED += CHANGED-d;
 }
 void hammond_1(){
 
@@ -115,7 +115,11 @@ void brute_force_2(){
 }
 
 void set_error_spots(uint64_t *target){
+    CHANGED = 0;
     for (int i = 0; i < TOTAL_BITS; i++){
-        if((random()%BIT_ERROR_RATE) == 0) target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
+        if((random()%BIT_ERROR_RATE) == 0){
+            target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
+            CHANGED++;
+        }
     }
 }
