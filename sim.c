@@ -20,6 +20,28 @@ uint64_t CHANGED = 0;
 int TOTAL_BITS;
 uint64_t original;
 
+/* Lookup table for Hamming(7, 4) codes
+ * can just index by four-bit sequence
+ */
+uint8_t hamming_74_lookup[16] = {
+    0x00, // 0000
+    0x69, // 0001
+    0x2A, // 0010
+    0x43, // 0011
+    0x4C, // 0100
+    0x25, // 0101
+    0x66, // 0110
+    0x0F, // 0111
+    0x70, // 1000
+    0x19, // 1001
+    0x5A, // 1010
+    0x33, // 1011
+    0x3C, // 1100
+    0x55, // 1101
+    0x16, // 1110
+    0x7F  // 1111
+};
+
 void set_error_spots(uint64_t* target);
 void unsafe();
 void hammond_1();
@@ -28,6 +50,8 @@ void brute_force_1();
 void brute_force_2();
 void error_test();
 
+
+
 uint8_t diff_bits(uint64_t x, uint64_t y){
     return __builtin_popcountll(x^y);
 }
@@ -35,6 +59,16 @@ uint8_t diff_bits(uint64_t x, uint64_t y){
 void print_results(){
     printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" bits of original message corrupted\n\t%"PRIu64" bit errors during transmission\n",
            NUM_ITERATIONS, RIGHT, WRONG, CHANGED);
+}
+/*
+ * hammond(7, 4) encoding of global uint64_t original;
+ * assumes given target of two uint64_ts
+ */
+void hammond_encode_74(uint64_t *target){
+    for (int i = 0; i < 16; i++){
+        //printf("hamming code: %x\n", hamming_74_lookup[(original>>(4*i))&0xF]);
+        target[i/8] |= (hamming_74_lookup[(original>>(4*i))&0xF])<<(8*i);
+    }
 }
 
 int main(int argc, char*argv[]){
@@ -94,8 +128,14 @@ void unsafe(){
     uint8_t d = diff_bits(corrupted, original);
     WRONG += d; RIGHT += TOTAL_BITS-d; FIXED += CHANGED-d;
 }
+/* hammond(7, 4) encoding */
 void hammond_1(){
-
+    uint64_t corrupted[2] = {0, 0};
+    hammond_encode_74((uint64_t*)&corrupted);
+    TOTAL_BITS = 7*sizeof(uint64_t)*8/4; // (7,4) code
+    set_error_spots((uint64_t*)&corrupted);
+    printf("original: %x\n", original);
+    printf("encoded after corruption: %x %x\n", corrupted[0], corrupted[1]);
 }
 void hammond_2(){
 
@@ -115,10 +155,24 @@ void brute_force_2(){
 }
 
 void set_error_spots(uint64_t *target){
-    for (int i = 0; i < TOTAL_BITS; i++){
-        if((random()%BIT_ERROR_RATE) == 0){
-            target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
-            CHANGED++;
-        }
+    switch(CODE_TO_USE){
+        case 0:
+        case BRUTE_FORCE_1:
+            for (int i = 0; i < TOTAL_BITS; i++){
+                if((random()%BIT_ERROR_RATE) == 0){
+                    target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
+                    CHANGED++;
+                }
+            }
+            break;
+        case HAMMOND_1:
+            for (int i = 0; i < TOTAL_BITS; i+=(1+(i%8==7))){
+                /* bits 7, 15, etc (from zero index) are not used */
+                if((random()%BIT_ERROR_RATE) == 0){
+                    target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
+                    CHANGED++;
+                    //printf("changing bit %d\n", i);
+                }
+            }
     }
 }
