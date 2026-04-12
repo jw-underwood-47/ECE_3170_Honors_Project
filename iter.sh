@@ -1,0 +1,14 @@
+#!/bin/bash
+RUN=./sim.exe
+CODES=({0..8}) # al tests
+ERROR_RATES=(2 10 50 100 500 1000 10000)
+ITERATIONS=10000
+STORAGE_DIRECTORY="results"
+mkdir -p "$STORAGE_DIRECTORY"
+for code in "${CODES[@]}"; do
+    for bit_error_rate in "${ERROR_RATES[@]}"; do
+        output_file="${STORAGE_DIRECTORY}/code_${code}_bit_error_rate_${bit_error_rate}.txt"
+        $RUN $code $ITERATIONS $bit_error_rate > "$output_file"
+    done
+done
+echo "done"
