@@ -1,9 +1,9 @@
 #!/bin/bash
 RUN=./sim.exe
-CODES=({0..8}) # al tests
+CODES=({0..8}) # all tests
 ERROR_RATES=(2 10 50 100 500 1000 10000)
 ITERATIONS=10000
-STORAGE_DIRECTORY="results"
+STORAGE_DIRECTORY="results$1" # lets me run multiple times and store results to different folder each time
 mkdir -p "$STORAGE_DIRECTORY"
 for code in "${CODES[@]}"; do
     for bit_error_rate in "${ERROR_RATES[@]}"; do
