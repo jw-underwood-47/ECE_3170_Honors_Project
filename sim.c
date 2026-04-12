@@ -8,6 +8,7 @@
 #define HAMMOND_1 2
 #define BRUTE_FORCE_2 3
 #define HAMMOND_2 4
+#define MAX_BURST_SIZE 15
 
 
 char CODE_TO_USE = 0;
@@ -43,12 +44,14 @@ uint8_t hamming_74_lookup[16] = {
 };
 
 void set_error_spots(uint64_t* target);
+void do_burst_error(uint64_t *target);
 void unsafe();
 void hamming_1();
 void hamming_2();
 void brute_force_1();
 void brute_force_2();
 void error_test();
+void do_clustered_error(uint64_t *target);
 
 
 
@@ -161,7 +164,16 @@ void hamming_1(){
     WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
 void hamming_2(){
-
+    uint64_t corrupted[2] = {0, 0};
+    hamming_encode_74((uint64_t*)&corrupted);
+    TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
+    do_burst_error((uint64_t*)&corrupted);
+    printf("\n\noriginal: %"PRIx64"\n", original);
+    printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
+    uint64_t reconstructed = 0; hamming_decode_74((uint64_t*)&corrupted, &reconstructed);
+    printf("reconstruction: %"PRIx64"\n", reconstructed);
+    uint8_t d = diff_bits(reconstructed, original);
+    WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
 void brute_force_1(){
     uint64_t corrupted[3] = {original, original, original};
@@ -169,12 +181,17 @@ void brute_force_1(){
     set_error_spots((uint64_t*)&corrupted);
     uint64_t reconstructed = (corrupted[0]&corrupted[1])|(corrupted[0]&corrupted[2])|(corrupted[1]&corrupted[2]);
     uint8_t d = diff_bits(reconstructed, original);
-    //int was_wrong = diff_bits(corrupted[0], original) + diff_bits(corrupted[1], original) + diff_bits(corrupted[2], original);
-    //total bit errors -- but, technically 3x as many b/c 3x bits sent
-    WRONG += d; RIGHT += TOTAL_BITS-d; FIXED += CHANGED-d;
+    WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
 void brute_force_2(){
-
+    uint64_t corrupted[3] = {original, original, original};
+    TOTAL_BITS = 3*sizeof(uint64_t)*8;
+    do_burst_error((uint64_t*)&corrupted);
+    uint64_t reconstructed = (corrupted[0]&corrupted[1])|(corrupted[0]&corrupted[2])|(corrupted[1]&corrupted[2]);
+    uint8_t d = diff_bits(reconstructed, original);
+    //int was_wrong = diff_bits(corrupted[0], original) + diff_bits(corrupted[1], original) + diff_bits(corrupted[2], original);
+    //total bit errors -- but, technically 3x as many b/c 3x bits sent
+    WRONG += d; RIGHT += 64-d; FIXED += CHANGED-d;
 }
 
 void set_error_spots(uint64_t *target){
@@ -196,6 +213,79 @@ void set_error_spots(uint64_t *target){
                     target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
                     CHANGED++;
                     //printf("changing bit %d\n", i);
+                }
+            }
+    }
+}
+void do_burst_error(uint64_t *target){
+    int burst_size;
+    switch(CODE_TO_USE){
+        case 0:
+        case BRUTE_FORCE_2:
+            for (int i = 0; i < TOTAL_BITS; i++){
+                burst_size = (random()%MAX_BURST_SIZE)+1; // burst size of zero would not make sense
+                if((random()%(BIT_ERROR_RATE*burst_size)) == 0){
+                    for(int j = 0; j < burst_size && i+j < TOTAL_BITS; j++){
+                        target[(i+j)/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<((i+j)%64);
+                        CHANGED++;
+                    }
+                    i += burst_size;
+                }
+            }
+            break;
+        case HAMMOND_2:
+            for (int i = 0; i < TOTAL_BITS; i++){
+                burst_size = (random()%MAX_BURST_SIZE)+1;
+                /* bits 7, 15, etc (from zero index) are not used */
+                if (i%8 == 7) continue;
+                if((random()%(BIT_ERROR_RATE*burst_size)) == 0){
+                    for(int j = 0; j < burst_size && i+j < TOTAL_BITS; j++){
+                        if ((i+j)%8 == 7){
+                            j--;
+                            i++; // avoid infinite loop
+                            continue; // skip unused bit
+                        }
+                        target[(i+j)/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<((i+j)%64);
+                        CHANGED++;
+                    }
+                    i += burst_size;
+                }
+            }
+    }
+}
+/* made unintentionally while making do_burst_error */
+void do_clustered_error(uint64_t *target){
+    int burst_size;
+    switch(CODE_TO_USE){
+        case 0:
+        case BRUTE_FORCE_2:
+            for (int i = 0; i < TOTAL_BITS; i++){
+                burst_size = (random()%MAX_BURST_SIZE)+1; // burst size of zero would not make sense
+                if((random()%(BIT_ERROR_RATE*burst_size)) == 0){
+                    for(int j = 0; j < burst_size && i+j < TOTAL_BITS; j++){
+                        i++;
+                        target[(i+j)/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<((i+j)%64);
+                        CHANGED++;
+                    }
+                }
+            }
+            break;
+        case HAMMOND_2:
+            for (int i = 0; i < TOTAL_BITS; i++){
+                burst_size = (random()%MAX_BURST_SIZE)+1;
+                /* bits 7, 15, etc (from zero index) are not used */
+                if (i%8 == 7) continue;
+                if((random()%(BIT_ERROR_RATE*burst_size)) == 0){
+                    for(int j = 0; j < burst_size && i+j < TOTAL_BITS; j++){
+                        i++;
+                        if ((i+j)%8 == 7){
+                            j--;
+                            continue; // skip unused bit
+                        }
+                        target[(i+j)/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<((i+j)%64);
+                        CHANGED++;
+
+                    }
                 }
             }
     }
