@@ -33,8 +33,8 @@ uint8_t diff_bits(uint64_t x, uint64_t y){
 }
 
 void print_results(){
-    printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" bits of original message corrupted\n\t%"PRIu64" bit errors fixed\n",
-           NUM_ITERATIONS, RIGHT, WRONG, FIXED);
+    printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" bits of original message corrupted\n\t%"PRIu64" bit errors during transmission\n",
+           NUM_ITERATIONS, RIGHT, WRONG, CHANGED);
 }
 
 int main(int argc, char*argv[]){
@@ -106,16 +106,15 @@ void brute_force_1(){
     set_error_spots((uint64_t*)&corrupted);
     uint64_t reconstructed = (corrupted[0]&corrupted[1])|(corrupted[0]&corrupted[2])|(corrupted[1]&corrupted[2]);
     uint8_t d = diff_bits(reconstructed, original);
-    int was_wrong = diff_bits(corrupted[0], original) + diff_bits(corrupted[1], original) + diff_bits(corrupted[2], original);
+    //int was_wrong = diff_bits(corrupted[0], original) + diff_bits(corrupted[1], original) + diff_bits(corrupted[2], original);
     // total bit errors -- but, technically 3x as many b/c 3x bits sent
-    WRONG += d; RIGHT += TOTAL_BITS-d-was_wrong; FIXED += was_wrong;
+    WRONG += d; RIGHT += TOTAL_BITS-d; FIXED += CHANGED-d;
 }
 void brute_force_2(){
 
 }
 
 void set_error_spots(uint64_t *target){
-    CHANGED = 0;
     for (int i = 0; i < TOTAL_BITS; i++){
         if((random()%BIT_ERROR_RATE) == 0){
             target[i/(sizeof(uint64_t)*8)] ^= (uint64_t)1<<(i%64);
