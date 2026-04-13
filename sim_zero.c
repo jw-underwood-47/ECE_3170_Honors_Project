@@ -130,47 +130,47 @@ void error_test(){
     printf("Using error rate 1 per %d\n", BIT_ERROR_RATE);
     switch(CODE_TO_USE){
         case 0:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 unsafe();
             }
             break;
         case BRUTE_FORCE_1:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 brute_force_1();
             }
             break;
         case HAMMING_1:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 hamming_1();
             }
             break;
         case BRUTE_FORCE_2:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 brute_force_2();
             }
             break;
         case HAMMING_2:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 hamming_2();
             }
             break;
         case BRUTE_FORCE_3:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 brute_force_3();
             }
             break;
         case HAMMING_3:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 hamming_3();
             }
             break;
         case BRUTE_FORCE_4:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 brute_force_4();
             }
             break;
         case HAMMING_4:
-            for(int i = 0; i < NUM_ITERATIONS; i++){
+            for(int i = 0; i < NUM_ITERATIONS; i++, original = (random() << 31) | (random())){
                 hamming_4();
             }
             break;
