@@ -1,8 +1,8 @@
 #!/bin/bash
 RUN=./sim_zero.exe
 CODES=({0..8}) # all tests
-ERROR_RATES=(2 10 50 100 500 1000 10000)
-ITERATIONS=100000
+ERROR_RATES=(2 5 10 50 100 500 1000 10000)
+ITERATIONS=1000000
 STORAGE_DIRECTORY="results_zero$1" # lets me run multiple times and store results to different folder each time
 mkdir -p "$STORAGE_DIRECTORY"
 for code in "${CODES[@]}"; do
