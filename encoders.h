@@ -1,16 +1,34 @@
-#define MAX_RAND 1000000000000000
-#define BRUTE_FORCE_1 2
-#define HAMMING_1 1
-#define BRUTE_FORCE_2 4
-#define HAMMING_2 3
-#define BRUTE_FORCE_3 6
-#define HAMMING_3 5
-#define BRUTE_FORCE_4 8
-#define HAMMING_4 7
-#define MAX_BURST_SIZE 15
-#define ZEROING 0
-#define RAISING 1
-#define INVERTING 2
+#ifndef MAX_RAND
+    #define MAX_RAND 1000000000000000
+#endif
+
+/* it is implausible that any other header would have one element of any of
+ * these groups defined but not the rest */
+#ifndef BRUTE_FORCE_1
+    #define BRUTE_FORCE_1 2
+    #define BRUTE_FORCE_2 4
+    #define BRUTE_FORCE_3 6
+    #define BRUTE_FORCE_4 8
+#endif
+#ifndef HAMMING_1
+    #define HAMMING_1 1
+    #define HAMMING_2 3
+    #define HAMMING_3 5
+    #define HAMMING_4 7
+#endif
+
+#ifndef MAX_BURST_SIZE
+    #define MAX_BURST_SIZE 15
+#endif
+#ifndef ZEROING
+    #define ZEROING 0
+#endif
+#ifndef RAISING
+    #define RAISING 1
+#endif
+#ifndef INVERTING
+    #define INVERTING 2
+#endif
 void do_clustered_error(uint64_t *target);
 void do_more_burst_errors(uint64_t *target);
 void set_error_spots(uint64_t* target);
@@ -36,6 +54,8 @@ uint8_t hamming_74_lookup[16] = {
     0x16, // 1110
     0x7F  // 1111
 };
+
+/* I feel like there might be a better way to handle these globals */
 extern char CODE_TO_USE;
 extern char ERROR_TYPE;
 extern int NUM_ITERATIONS;
@@ -46,6 +66,12 @@ extern uint64_t FIXED;
 extern uint64_t CHANGED;
 extern int TOTAL_BITS;
 extern uint64_t original;
+
+/* count bits differing between uint64_ts
+ * used to figure out how many bits were corrupted */
+uint8_t diff_bits(uint64_t x, uint64_t y){
+    return __builtin_popcountll(x^y);
+}
 
 /*
  * hamming(7, 4) encoding of global uint64_t original;

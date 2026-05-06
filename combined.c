@@ -4,19 +4,7 @@
 #include <time.h>
 #include <inttypes.h>
 #include "encoders.h"
-#define MAX_RAND 1000000000000000
-#define BRUTE_FORCE_1 2
-#define HAMMING_1 1
-#define BRUTE_FORCE_2 4
-#define HAMMING_2 3
-#define BRUTE_FORCE_3 6
-#define HAMMING_3 5
-#define BRUTE_FORCE_4 8
-#define HAMMING_4 7
-#define MAX_BURST_SIZE 15
-#define ZEROING 0
-#define RAISING 1
-#define INVERTING 2
+
 char CODE_TO_USE = 0;
 char ERROR_TYPE = 2;
 int NUM_ITERATIONS = 1000;
@@ -38,10 +26,6 @@ void hamming_1();
 void hamming_2();
 void hamming_3();
 void hamming_4();
-
-uint8_t diff_bits(uint64_t x, uint64_t y){
-    return __builtin_popcountll(x^y);
-}
 
 void print_results(){
     printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" bits of original message corrupted\n\t%"PRIu64" bit errors during transmission\n",
@@ -69,6 +53,7 @@ int main(int argc, char*argv[]){
     error_test();
 }
 
+/* print some info about run, then call function to run appropriate sim */
 void error_test(){
     int *results = (int*)calloc(2, sizeof(int));
     printf("Using error rate 1 per %d error type # %d\n", BIT_ERROR_RATE, ERROR_TYPE);
