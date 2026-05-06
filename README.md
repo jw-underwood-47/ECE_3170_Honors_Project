@@ -1,16 +1,19 @@
 # ECE_3170_Honors_Project
 usage:  
-```./sim.exe algo [num_iterations] [bit_error_rate]```  
+```./sim.exe algo [error_type] [num_iterations] [bit_error_rate]```  
+Error types:  
+0 -> affected bits set to zero  
+1 -> affected bits set to one  
+2 -> affected bits inverted  
 Zero is no encoding, other even numbers are repetition with assorted error  
 models, odd numbers are hammond with assorted error models (see #defines at  
-top of program).  sim_zero is basically the same, but bit errors only go 1->0  
-iter.sh and iter_zero.sh run through all error models (within that program)  
-and send the results to separate, labelled files in a results directory  
-of the form results* where * is the first command line argument to the script  
-tweaking the number of iterations and bit error values should be pretty easy  
-
+top of program).  
+combined.c is the only one to support the error type argument (the same  
+arguments otherwise work with sim and sim_zero).  
+Arguments are strictly positional, for the time being.  
 # Eventual idea
-While it won't be till the end of this (spring 2026 semester), at earliest, I  
-would rather like to get all of this into one, cleaner library since sim_zero  
-and sim do very similar things and those functions could probably be combined  
-in some way... but I also need to deal with coursework and other school stuff  
+Even combined.c could be made substantially cleaner and more readable.  
+There is a lot of repeated code, but I'm not sure how much of that should be  
+made into functions to avoid performance hits.  
+I would like to find a better way to handle each kind of sim than a switch  
+case into each function.  
