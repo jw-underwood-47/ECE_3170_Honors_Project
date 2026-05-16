@@ -27,6 +27,15 @@ void hamming_2();
 void hamming_3();
 void hamming_4();
 
+/* prints info after test is run
+ * Iterations is how many time the sim function was called;
+ * muptiply by 64 to get total bits in original message
+ * "bits uncorrupted" is bits of original message; that plus
+ * "bits of original message corrupted" should be 64*NUM_ITERATIONS
+ * "bit errors during transmission" is how many bits were subjected
+ * to the bit error event; for anything but inverting error, those
+ * bits were not necessarily actually flipped (a 0 that gets 0'd is still 0)
+ */
 void print_results(){
     printf("%d total iterations:\n\t%"PRIu64" bits uncorrupted\n\t%"PRIu64" bits of original message corrupted\n\t%"PRIu64" bit errors during transmission\n",
            NUM_ITERATIONS, RIGHT, WRONG, CHANGED);
