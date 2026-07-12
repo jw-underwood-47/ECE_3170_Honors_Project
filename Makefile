@@ -1,9 +1,12 @@
-CC = gcc
-sim = sim.c
-sim_zero = sim_zero.c
-sim_out = -o sim.exe
-sim_zero_out = -o sim_zero.exe
+CC=gcc
+GLOBAL_FOLDER=global_heavy/
+STRUCT_FOLDER=struct_based/
+SIM=sim
+SIM_ZERO=sim_zero
+STRUCT_BASED=combined_with_struct
 FLAGS = -g -o3
 default:
-	$(CC) $(FLAGS)  $(sim) $(sim_out)
-	$(CC) $(FLAGS)  $(sim_zero) $(sim_zero_out)
+	$(CC) $(FLAGS) $(GLOBAL_FOLDER)$(SIM).c -o $(SIM).exe
+	$(CC) $(FLAGS) $(GLOBAL_FOLDER)$(SIM_ZERO).c -o $(SIM_ZERO).exe
+struct:
+	$(CC) $(FLAGS) $(STRUCT_FOLDER)$(STRUCT_BASED).c -o $(STRUCT_BASED).exe
