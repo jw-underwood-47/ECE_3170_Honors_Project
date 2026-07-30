@@ -62,10 +62,6 @@ extern char CODE_TO_USE;
 extern char ERROR_TYPE;
 extern int NUM_ITERATIONS;
 extern int BIT_ERROR_RATE;
-extern uint64_t RIGHT;
-extern uint64_t WRONG;
-extern uint64_t FIXED;
-extern uint64_t CHANGED;
 extern int TOTAL_BITS;
 extern uint64_t original;
 
