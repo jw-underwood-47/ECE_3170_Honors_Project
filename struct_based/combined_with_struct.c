@@ -127,10 +127,7 @@ void hamming_1(results_t* results, message_t *msg){
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
     set_error_spots((uint64_t*)&corrupted, results);
-    //printf("\n\noriginal: %"PRIx64"\n", original);
-    //printf("encoded after corruption: %"PRIx64" %"PRIx64"\n", corrupted[0], corrupted[1]);
     uint64_t reconstructed = 0; hamming_decode_74((uint64_t*)&corrupted, &reconstructed);
-    //printf("reconstruction: %"PRIx64"\n", reconstructed);
     uint8_t d = diff_bits(reconstructed, original);
     results->wrong += d; results->right += 64-d; results->fixed += (results->changed)-d;
 }
