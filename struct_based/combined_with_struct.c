@@ -11,16 +11,16 @@ int BIT_ERROR_RATE = 1000;
 int TOTAL_BITS;
 uint64_t original;
 
-void error_test(results_t*);
-void unsafe(results_t*);
-void brute_force_1(results_t*);
-void brute_force_2(results_t*);
-void brute_force_3(results_t*);
-void brute_force_4(results_t*);
-void hamming_1(results_t*);
-void hamming_2(results_t*);
-void hamming_3(results_t*);
-void hamming_4(results_t*);
+void error_test(results_t*, message_t*);
+void unsafe(results_t*, message_t*);
+void brute_force_1(results_t*, message_t*);
+void brute_force_2(results_t*, message_t*);
+void brute_force_3(results_t*, message_t*);
+void brute_force_4(results_t*, message_t*);
+void hamming_1(results_t*, message_t*);
+void hamming_2(results_t*, message_t*);
+void hamming_3(results_t*, message_t*);
+void hamming_4(results_t*, message_t*);
 
 /* prints info after test is run
  * Iterations is how many time the sim function was called;
@@ -54,18 +54,19 @@ int main(int argc, char*argv[]){
             }
         }
     }
-    original = (random() << 31) | (random());
-    error_test(results);
+    message_t *msg = (message_t *)calloc(1, sizeof(message_t));
+    msg->original = (random() << 31) | (random());
+    error_test(results, msg);
 }
 
 /* print some info about run, then call function to run appropriate sim */
-void error_test(results_t* results){
+void error_test(results_t* results, message_t *msg){
     //int *results = (int*)calloc(2, sizeof(int));
     printf("Using error rate 1 per %d error type # %d\n", BIT_ERROR_RATE, ERROR_TYPE);
     switch(CODE_TO_USE){
         case 0:
             for(int i = 0; i < NUM_ITERATIONS; i++){
-                unsafe(results);
+                unsafe(results, msg);
             }
             break;
         case BRUTE_FORCE_1:
@@ -112,15 +113,16 @@ void error_test(results_t* results){
     print_results(results);
 }
 
-void unsafe(results_t* results){
-    uint64_t corrupted = original;
+void unsafe(results_t* results, message_t *msg){
+    msg->corrupted = (uint64_t *)calloc(1, sizeof(uint64_t));
+    memcpy(msg->corrupted, msg->original, sizeof(uint64_t));
     TOTAL_BITS = sizeof(uint64_t)*8;
-    set_error_spots(&corrupted, results);
-    uint8_t d = diff_bits(corrupted, original);
+    set_error_spots(msg->corrupted, results);
+    uint8_t d = diff_bits(msg->corrupted, original);
     results->wrong += d; results->right += TOTAL_BITS-d; results->fixed += results->changed-d;
 }
 /* hamming(7, 4) encoding */
-void hamming_1(results_t* results){
+void hamming_1(results_t* results, message_t *msg){
     uint64_t corrupted[2] = {0, 0};
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
@@ -132,7 +134,7 @@ void hamming_1(results_t* results){
     uint8_t d = diff_bits(reconstructed, original);
     results->wrong += d; results->right += 64-d; results->fixed += (results->changed)-d;
 }
-void hamming_2(results_t* results){
+void hamming_2(results_t* results, message_t *msg){
     uint64_t corrupted[2] = {0, 0};
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
@@ -144,7 +146,7 @@ void hamming_2(results_t* results){
     uint8_t d = diff_bits(reconstructed, original);
     results->wrong += d; results->right += 64-d; results->fixed += (results->changed)-d;
 }
-void hamming_3(results_t* results){
+void hamming_3(results_t* results, message_t *msg){
     uint64_t corrupted[2] = {0, 0};
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
@@ -156,7 +158,7 @@ void hamming_3(results_t* results){
     uint8_t d = diff_bits(reconstructed, original);
     results->wrong += d; results->right += 64-d; results->fixed += (results->changed)-d;
 }
-void hamming_4(results_t* results){
+void hamming_4(results_t* results, message_t *msg){
     uint64_t corrupted[2] = {0, 0};
     hamming_encode_74((uint64_t*)&corrupted);
     TOTAL_BITS = 2*sizeof(uint64_t)*8; // using 2 full uint64_ts
@@ -168,7 +170,7 @@ void hamming_4(results_t* results){
     uint8_t d = diff_bits(reconstructed, original);
     results->wrong += d; results->right += 64-d; results->fixed += (results->changed)-d;
 }
-void brute_force_1(results_t *results){
+void brute_force_1(results_t *results, message_t *msg){
     uint64_t corrupted[3] = {original, original, original};
     TOTAL_BITS = 3*sizeof(uint64_t)*8;
     set_error_spots((uint64_t*)&corrupted, results);
@@ -176,7 +178,7 @@ void brute_force_1(results_t *results){
     uint8_t d = diff_bits(reconstructed, original);
     results->wrong += d; results->right += 64-d; results->fixed += (results->changed)-d;
 }
-void brute_force_2(results_t* results){
+void brute_force_2(results_t* results, message_t *msg){
     uint64_t corrupted[3] = {original, original, original};
     TOTAL_BITS = 3*sizeof(uint64_t)*8;
     do_burst_error((uint64_t*)&corrupted, results);
@@ -186,7 +188,7 @@ void brute_force_2(results_t* results){
     //total bit errors -- but, technically 3x as many b/c 3x bits sent
     results->wrong += d; results->right += 64-d; results->fixed += (results->changed)-d;
 }
-void brute_force_3(results_t* results){
+void brute_force_3(results_t* results, message_t *msg){
     uint64_t corrupted[3] = {original, original, original};
     TOTAL_BITS = 3*sizeof(uint64_t)*8;
     do_clustered_error((uint64_t*)&corrupted, results);
@@ -194,7 +196,7 @@ void brute_force_3(results_t* results){
     uint8_t d = diff_bits(reconstructed, original);
     results->wrong += d; results->right += 64-d; results->fixed += (results->changed)-d;
 }
-void brute_force_4(results_t* results){
+void brute_force_4(results_t* results, message_t *msg){
     uint64_t corrupted[3] = {original, original, original};
     TOTAL_BITS = 3*sizeof(uint64_t)*8;
     do_more_burst_errors((uint64_t*)&corrupted, results);
