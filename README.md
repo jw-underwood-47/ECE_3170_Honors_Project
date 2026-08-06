@@ -11,9 +11,11 @@ top of program).
 combined.c is the only one to support the error type argument (the same  
 arguments otherwise work with sim and sim_zero).  
 Arguments are strictly positional, for the time being.  
-# Eventual idea
-Even combined.c could be made substantially cleaner and more readable.  
-There is a lot of repeated code, but I'm not sure how much of that should be  
-made into functions to avoid performance hits.  
-I would like to find a better way to handle each kind of sim than a switch  
-case into each function.  
+# UPDATE:
+I have done some work on refactoring the code to use fewer global variables.  
+The struct_based folder (and, at least sometimes, AI-related refactoring
+subfolders) contain my efforts to replace the globals with structs.  
+The most recent update to the code (as of 8/6/2026) contains attempts to
+reduce the number of nearly-identical functions; the simulation behavior
+seems to be identical to the earlier versions but I have not completely
+verified this.  
